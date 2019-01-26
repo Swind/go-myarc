@@ -2,10 +2,7 @@ package main
 
 import (
 	"fmt"
-	"os"
 
-	"github.com/go-audio/audio"
-	"github.com/go-audio/wav"
 	"github.com/gordonklaus/portaudio"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
@@ -15,99 +12,28 @@ import (
 type RecordStreamHandler interface {
 	Open() error
 	Close() error
-	Write(buffer []int8) bool
-}
-
-// WavRecordStreamHandler save the sound file
-type WavRecordStreamHandler struct {
-	path        string
-	bitDepth    int
-	numChannels int
-	sampleRate  int
-
-	encoder       *wav.Encoder
-	format        *audio.Format
-	bufferAdapter *audio.IntBuffer
-}
-
-// NewWavRecordStreamHandler Create WavRecordStreamHandler
-func NewWavRecordStreamHandler(path string, bitDepth int, numChannels int, sampleRate int) *WavRecordStreamHandler {
-	handler := new(WavRecordStreamHandler)
-
-	handler.path = path
-	handler.bitDepth = bitDepth
-	handler.numChannels = numChannels
-	handler.sampleRate = sampleRate
-
-	handler.format = &audio.Format{
-		NumChannels: numChannels,
-		SampleRate:  sampleRate,
-	}
-
-	handler.bufferAdapter = &audio.IntBuffer{
-		Data:   nil,
-		Format: handler.format,
-	}
-
-	return handler
-}
-
-// Open open the file
-func (handler *WavRecordStreamHandler) Open() error {
-	outFile, err := os.Create(handler.path)
-	if err != nil {
-		return err
-	}
-
-	encoder := wav.NewEncoder(
-		outFile,
-		handler.sampleRate,
-		handler.bitDepth,
-		handler.numChannels,
-		1)
-
-	handler.encoder = encoder
-	return nil
-}
-
-// Close close the file
-func (handler *WavRecordStreamHandler) Close() error {
-	if handler.encoder != nil {
-		err := handler.encoder.Close()
-		return err
-	}
-	return nil
-}
-
-var counter = 0
-
-// Write save the sound to file as wav
-func (handler *WavRecordStreamHandler) Write(buffer []int8) bool {
-	handler.bufferAdapter.Data = buffer
-	handler.encoder.Write(handler.bufferAdapter)
-
-	if counter > 10 {
-		return true
-	} else {
-		return false
-	}
+	Write(buffer []int16) bool
 }
 
 // MicrophoneDevice the microphone device
 type MicrophoneDevice struct {
 	numInputChannels int
 	sampleRate       float64
-	bitDepth         int
 	framesPerBuffer  int
 }
 
+func checkError(err error) {
+	if err != nil {
+		panic(err)
+	}
+}
+
 // NewMicrophoneDevice Create a new MicrophoneDevice
-func NewMicrophoneDevice(bitDepth int, numInputChannels int, sampleRate float64, framesPerBuffer int) *MicrophoneDevice {
+func NewMicrophoneDevice(numInputChannels int, sampleRate float64, framesPerBuffer int) *MicrophoneDevice {
 	device := new(MicrophoneDevice)
 
 	device.numInputChannels = numInputChannels
 	device.sampleRate = sampleRate
-	device.bitDepth = bitDepth
 	device.framesPerBuffer = framesPerBuffer
 
 	return device
@@ -115,9 +41,8 @@ func NewMicrophoneDevice(bitDepth int, numInputChannels int, sampleRate float64,
 
 // Start start recording
 func (device *MicrophoneDevice) Start(handler RecordStreamHandler) error {
-	zap.S().Infow("Initializing portaudio ...")
-
 	// Init portaudio
+	zap.S().Debugw("Initializing portaudio ...")
 	portaudio.Initialize()
 	defer portaudio.Terminate()
 
@@ -127,7 +52,7 @@ func (device *MicrophoneDevice) Start(handler RecordStreamHandler) error {
 
 	// Open stream
 	zap.S().Infow("Opening the default stream ...")
-	buffer := make([]int8, device.framesPerBuffer*(device.bitDepth/8))
+	buffer := make([]int16, device.framesPerBuffer)
 	stream, err := portaudio.OpenDefaultStream(
 		device.numInputChannels,
 		0,
@@ -160,27 +85,32 @@ func (device *MicrophoneDevice) Start(handler RecordStreamHandler) error {
 }
 
 func main() {
-	logger, _ := zap.NewDevelopment()
-	zap.ReplaceGlobals(logger)
-	logger.Sugar().Infow("An info message", "iteration", 1)
+	/*
+		logger, _ := zap.NewDevelopment()
+		zap.ReplaceGlobals(logger)
+		logger.Sugar().Infow("An info message", "iteration", 1)
 
-	bitDepth := 16
-	numChannels := 2
-	sampleRate := 44100
+		numChannels := 2
+		sampleRate := 44100
+		framePerBuffer := 64
 
-	handler := NewWavRecordStreamHandler(
-		"test.wav",
-		bitDepth,
-		numChannels,
-		sampleRate,
-	)
+		handler := Handler.NewWavRecordStreamHandler(
+			"test.wav",
+			numChannels,
+			sampleRate,
+			framePerBuffer,
+		)
 
-	device := NewMicrophoneDevice(
-		bitDepth,
-		numChannels,
-		float64(sampleRate),
-		16,
-	)
+		device := NewMicrophoneDevice(
+			numChannels,
+			float64(sampleRate),
+			framePerBuffer,
+		)
 
-	device.Start(handler)
+		err := device.Start(handler)
+		if err != nil {
+			panic(err)
+		}
+	*/
+	example()
 }
