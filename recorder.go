@@ -2,10 +2,14 @@ package main
 
 import (
 	"fmt"
+	"sync"
+	"time"
 
 	"github.com/gordonklaus/portaudio"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
+
+	Handler "github.com/swind/go-myarc/handler"
 )
 
 // RecordStreamHandler When MicrophoneDevice recording, use this handler to handle the data
@@ -20,6 +24,9 @@ type MicrophoneDevice struct {
 	numInputChannels int
 	sampleRate       float64
 	framesPerBuffer  int
+
+	stopFlag  bool
+	WaitGroup sync.WaitGroup
 }
 
 func checkError(err error) {
@@ -35,12 +42,21 @@ func NewMicrophoneDevice(numInputChannels int, sampleRate float64, framesPerBuff
 	device.numInputChannels = numInputChannels
 	device.sampleRate = sampleRate
 	device.framesPerBuffer = framesPerBuffer
+	device.stopFlag = false
 
 	return device
 }
 
-// Start start recording
+// Start Start recording async
 func (device *MicrophoneDevice) Start(handler RecordStreamHandler) error {
+	device.WaitGroup.Add(1)
+	go device.startRecording(handler)
+	return nil
+}
+
+func (device *MicrophoneDevice) startRecording(handler RecordStreamHandler) error {
+	defer device.WaitGroup.Done()
+
 	// Init portaudio
 	zap.S().Debugw("Initializing portaudio ...")
 	portaudio.Initialize()
@@ -78,39 +94,44 @@ func (device *MicrophoneDevice) Start(handler RecordStreamHandler) error {
 		if err != nil {
 			return errors.Wrap(err, "Can't read data from the stream")
 		}
-		if !handler.Write(buffer) {
+		if !handler.Write(buffer) || device.stopFlag {
 			return nil
 		}
 	}
 }
 
+// Stop Stop recording
+func (device *MicrophoneDevice) Stop() {
+	device.stopFlag = true
+	device.WaitGroup.Wait()
+}
+
 func main() {
-	/*
-		logger, _ := zap.NewDevelopment()
-		zap.ReplaceGlobals(logger)
-		logger.Sugar().Infow("An info message", "iteration", 1)
+	logger, _ := zap.NewDevelopment()
+	zap.ReplaceGlobals(logger)
+	logger.Sugar().Infow("An info message", "iteration", 1)
 
-		numChannels := 2
-		sampleRate := 44100
-		framePerBuffer := 64
+	numChannels := 2
+	sampleRate := 44100
+	framePerBuffer := 64
 
-		handler := Handler.NewWavRecordStreamHandler(
-			"test.wav",
-			numChannels,
-			sampleRate,
-			framePerBuffer,
-		)
+	handler := Handler.NewWavRecordStreamHandler(
+		"test.wav",
+		numChannels,
+		sampleRate,
+		framePerBuffer,
+	)
 
-		device := NewMicrophoneDevice(
-			numChannels,
-			float64(sampleRate),
-			framePerBuffer,
-		)
+	device := NewMicrophoneDevice(
+		numChannels,
+		float64(sampleRate),
+		framePerBuffer,
+	)
 
-		err := device.Start(handler)
-		if err != nil {
-			panic(err)
-		}
-	*/
-	example()
+	err := device.Start(handler)
+	if err != nil {
+		panic(err)
+	}
+	time.Sleep(10 * time.Second)
+	device.Stop()
 }

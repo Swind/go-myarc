@@ -17,6 +17,8 @@ type WavRecordStreamHandler struct {
 	encoder       *wav.Encoder
 	format        *audio.Format
 	bufferAdapter *audio.IntBuffer
+
+	stop bool
 }
 
 // NewWavRecordStreamHandler Create WavRecordStreamHandler
@@ -26,6 +28,7 @@ func NewWavRecordStreamHandler(path string, numChannels int, sampleRate int, buf
 	handler.path = path
 	handler.numChannels = numChannels
 	handler.sampleRate = sampleRate
+	handler.stop = false
 
 	handler.format = &audio.Format{
 		NumChannels: numChannels,
@@ -67,8 +70,6 @@ func (handler *WavRecordStreamHandler) Close() error {
 	return nil
 }
 
-var counter = 0
-
 // Write save the sound to file as wav
 func (handler *WavRecordStreamHandler) Write(buffer []int16) bool {
 	for i := 0; i < len(buffer); i++ {
@@ -76,10 +77,5 @@ func (handler *WavRecordStreamHandler) Write(buffer []int16) bool {
 	}
 	handler.encoder.Write(handler.bufferAdapter)
 
-	if counter < 1024 {
-		counter++
-		return true
-	} else {
-		return false
-	}
+	return !handler.stop
 }

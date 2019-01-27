@@ -3,15 +3,84 @@
 
 [[projects]]
   branch = "master"
+  digest = "1:42b801064f0aeb1b9bad0e1b42edf27bc34485bec63b965b9b840e07e6074608"
+  name = "github.com/go-audio/audio"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "7b2a6ca214808c64326280ac13268af853543f0b"
+
+[[projects]]
+  branch = "master"
+  digest = "1:d8265bd12a9b80cff23bb0b225318230765a7220500a006392c53a6dc05b1367"
+  name = "github.com/go-audio/wav"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "de841e69b8842aa73e98054d37feb48425f133b8"
+
+[[projects]]
+  branch = "master"
   digest = "1:322ab352ba0fc7db4263e17c71624ba3b4d90365d2074afa57e5eb9214645174"
   name = "github.com/gordonklaus/portaudio"
   packages = ["."]
   pruneopts = "UT"
   revision = "00e7307ccd93051979a933c6fd5ead641eba5686"
 
+[[projects]]
+  branch = "master"
+  digest = "1:8c2ec3f7fa853d374b340831554f225ead9ab4cc6932256f0cffbfef8c78d9f5"
+  name = "github.com/mattetti/audio"
+  packages = ["riff"]
+  pruneopts = "UT"
+  revision = "01576cde1f212c296c0b8ef5fa857169770c75b6"
+
+[[projects]]
+  digest = "1:cf31692c14422fa27c83a05292eb5cbe0fb2775972e8f1f8446a71549bd8980b"
+  name = "github.com/pkg/errors"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "ba968bfe8b2f7e042a574c888954fccecfa385b4"
+  version = "v0.8.1"
+
+[[projects]]
+  digest = "1:3c1a69cdae3501bf75e76d0d86dc6f2b0a7421bc205c0cb7b96b19eed464a34d"
+  name = "go.uber.org/atomic"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "1ea20fb1cbb1cc08cbd0d913a96dead89aa18289"
+  version = "v1.3.2"
+
+[[projects]]
+  digest = "1:60bf2a5e347af463c42ed31a493d817f8a72f102543060ed992754e689805d1a"
+  name = "go.uber.org/multierr"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "3c4937480c32f4c13a875a1829af76c98ca3d40a"
+  version = "v1.1.0"
+
+[[projects]]
+  digest = "1:c52caf7bd44f92e54627a31b85baf06a68333a196b3d8d241480a774733dcf8b"
+  name = "go.uber.org/zap"
+  packages = [
+    ".",
+    "buffer",
+    "internal/bufferpool",
+    "internal/color",
+    "internal/exit",
+    "zapcore",
+  ]
+  pruneopts = "UT"
+  revision = "ff33455a0e382e8a81d14dd7c922020b6b5e7982"
+  version = "v1.9.1"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  input-imports = ["github.com/gordonklaus/portaudio"]
+  input-imports = [
+    "github.com/go-audio/audio",
+    "github.com/go-audio/wav",
+    "github.com/gordonklaus/portaudio",
+    "github.com/pkg/errors",
+    "go.uber.org/zap",
+  ]
   solver-name = "gps-cdcl"
   solver-version = 1
